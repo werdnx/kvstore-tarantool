@@ -1,0 +1,12 @@
+ version: '2'
+ services:
+   kv_server:
+     build: src
+   http_server:
+     depends_on: 
+       - kv_server
+     build: http
+     ports:
+       - 80:80
+
+
