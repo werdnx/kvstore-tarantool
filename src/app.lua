@@ -16,31 +16,36 @@ function delete(key)
     return dao:delete(key)
 end
 
-function badResponse(req, status, message)
+function response(req, status, message)
     local resp = req:render({ text = message })
     resp.status = status
     return resp
 end
 
+function emptyResponse(req)
+    return response(req,200,'')
+end
+
 local function deleteHandler(req)
     local obj = get(req:stash('key'))
     if obj == nil then
-        return badResponse(req, 404, 'Key ' .. req:stash('key') .. ' not found')
+        return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
     else
-        return req:render({text = delete(req:stash('key'))})
+        delete(req:stash('key'))
+        return emptyResponse(req)
     end
 end
 
 local function postHandler(req)
-    if req:stash('key') == nil or req:stash('value') == nil then
-        return badResponse(req, 400, 'Bad params key or value is null')
+    if req:stash('key') == nil or req:json() == nil then
+        return response(req, 400, 'Bad params key or value is null')
     else
         local obj = get(req:stash('key'))
-        if #obj == 0 then
-            return badResponse(req, 404, 'Key ' .. req:stash('key') .. ' not found')
+        if obj == nil then
+            return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
         else
-            put(req:stash('key'), req:stash('value'))
-            return req:render({text = ''})
+            put(req:stash('key'), req:json())
+            return emptyResponse(req)
         end
     end
 end
@@ -50,18 +55,18 @@ local function getHandler(req)
 end
 
 local function putHandler(req)
-    if req:stash('key') == nil or req:stash('value') == nil then
-        return badResponse(req, 400, 'Bad params key or value is null')
+    if req:stash('key') == nil or req:json() == nil then
+        return response(req, 400, 'Bad params key or value is null')
     else
-        put(req:stash('key'), req:stash('value'))
-        return req:render({text = ''})
+        put(req:stash('key'), req:json())
+        return emptyResponse(req)
     end
 end
 
 function main()
     local server = httpd.new(SERVER_IP, 8080)
-    server:route({ path = '/kv/:key/:value', method = 'POST' }, postHandler)
-    server:route({ path = '/kv/:key/:value', method = 'PUT' }, putHandler)
+    server:route({ path = '/kv/:key', method = 'POST' }, postHandler)
+    server:route({ path = '/kv/:key', method = 'PUT' }, putHandler)
     server:route({ path = '/kv/:key', method = 'GET' }, getHandler)
     server:route({ path = '/kv/:key', method = 'DELETE' }, deleteHandler)
     server:start()

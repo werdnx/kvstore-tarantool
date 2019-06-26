@@ -1,34 +1,24 @@
 local log = require('log')
-SPACE_NAME = "kv_space"
+doc = require('document')
+
+SPACE_NAME = "kv_space_json"
 box.cfg { listen = 3301 }
-s = box.schema.space.create(SPACE_NAME, { if_not_exists = true,
-                                          format = ({
-                                              { name = 'key', type = 'string' },
-                                              { name = 'value', type = 'string' }
-                                          }) })
+s = box.schema.space.create(SPACE_NAME, { if_not_exists = true })
 log.info('space created')
-s:create_index('primary', {
-    type = 'hash',
-    parts = { 'key' },
-    if_not_exists = true
-})
+doc.create_index(s, 'primary', { parts = { 'key', 'string' }, if_not_exists = true })
 log.info('index created')
 
 local dao = {
     put = function(self, key, value)
-        s:upsert({key, value}, {{ '=', 2, value }})
+        s:put(doc.flatten(s,{key = key, value = value}))
     end,
 
     get = function(self, key)
-        return s:select(key)
-    end,
-
-    getAll = function(self)
-        return s:select()
+        return doc.unflatten(s, s:get(key))
     end,
 
     delete = function(self, key)
-        return s:delete(key)
+        return doc.delete(s, { { '$key', '==', key } })
     end
 }
 
