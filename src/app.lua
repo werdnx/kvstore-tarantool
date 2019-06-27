@@ -1,9 +1,10 @@
 local dao = require('db')
+local check = require('check')
 local log = require('log')
 local httpd = require('http.server')
 local SERVER_IP = os.getenv('SERVER_IP')
-local RPS = os.getenv('RPS')
 local json = require('json')
+
 
 function put(key, value)
     dao:put(key, value)
@@ -28,51 +29,22 @@ function emptyResponse(req)
 end
 
 local function deleteHandler(req)
-    if checkRps() == false then
-        return response(req, 429, 'Too Many Requests')
+    local obj = get(req:stash('key'))
+    if obj == nil then
+        return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
     else
-        local obj = get(req:stash('key'))
-        if obj == nil then
-            return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
-        else
-            delete(req:stash('key'))
-            return emptyResponse(req)
-        end
+        delete(req:stash('key'))
+        return emptyResponse(req)
     end
 end
 
 local function postHandler(req)
-    if checkRps() == false then
-        return response(req, 429, 'Too Many Requests')
+    if req:stash('key') == nil or req:json() == nil then
+        return response(req, 400, 'Bad params key or value is null')
     else
-        if req:stash('key') == nil or req:json() == nil then
-            return response(req, 400, 'Bad params key or value is null')
-        else
-            local obj = get(req:stash('key'))
-            if obj == nil then
-                return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
-            else
-                put(req:stash('key'), req:json())
-                return emptyResponse(req)
-            end
-        end
-    end
-end
-
-local function getHandler(req)
-    if checkRps() == false then
-        return response(req, 429, 'Too Many Requests')
-    else
-        return req:render({ text = json.encode(get(req:stash('key'))) })
-    end
-end
-
-local function putHandler(req)
-    if checkRps() == false then
-        return response(req, 429, 'Too Many Requests')
-    else
-        if req:stash('key') == nil or req:json() == nil then
-            return response(req, 400, 'Bad params key or value is null')
+        local obj = get(req:stash('key'))
+        if obj == nil then
+            return response(req, 404, 'Key ' .. req:stash('key') .. ' not found')
         else
             put(req:stash('key'), req:json())
             return emptyResponse(req)
@@ -80,35 +52,42 @@ local function putHandler(req)
     end
 end
 
-lastCallTime = 0
-requests = 0
-maxRequests = tonumber(RPS)
-function checkRps()
-    local result = true
-    local callTime = os.time()
-    log.info('timediff ' .. os.difftime(callTime, lastCallTime))
-    if os.difftime(callTime, lastCallTime) == 0 then
-        requests = requests + 1
-        log.info('RPS ' .. maxRequests)
-        log.info('RPS req' .. requests)
-        if requests > maxRequests then
-            log.info('inside')
-            result = false
-        end
+local function getHandler(req)
+    return req:render({ text = json.encode(get(req:stash('key'))) })
+end
+
+local function putHandler(req)
+    if req:stash('key') == nil or req:json() == nil then
+        return response(req, 400, 'Bad params key or value is null')
     else
-        requests = 1
+        put(req:stash('key'), req:json())
+        return emptyResponse(req)
     end
-    lastCallTime = callTime
-    log.info('req ' .. requests)
-    return result
+end
+
+local function handler(req)
+    if check:rps() == false then
+        return response(req, 429, 'Too Many Requests')
+    elseif check:auth(req) == false then
+        return response(req, 401, 'Unauthorized')
+    else
+        if req.method == 'POST' then
+            return postHandler(req)
+        elseif req.method == 'PUT' then
+            return putHandler(req)
+        elseif req.method == 'GET' then
+            return getHandler(req)
+        elseif req.method == 'DELETE' then
+            return deleteHandler(req)
+        else
+            return response(req, 405, 'Method Not Allowed')
+        end
+    end
 end
 
 function main()
     local server = httpd.new(SERVER_IP, 8080)
-    server:route({ path = '/kv/:key', method = 'POST' }, postHandler)
-    server:route({ path = '/kv/:key', method = 'PUT' }, putHandler)
-    server:route({ path = '/kv/:key', method = 'GET' }, getHandler)
-    server:route({ path = '/kv/:key', method = 'DELETE' }, deleteHandler)
+    server:route({ path = '/kv/:key' }, handler)
     server:start()
 end
 
