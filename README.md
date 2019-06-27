@@ -8,17 +8,17 @@ It assumes user and base64 encoded password will comes in authorization header.
 There is special store for users, it keeps user id(name), sha256 hashed passwor and permissions for REST operations. It is possible to assign separate permissions for each REST operation.
 By default there is user admin with password adminpwd with all permissions.
 
-##RPS limiting
+## RPS limiting
 By default RPS limit value = 20. It can be changed in docker-compose.yml file. 
 
-##STORAGE
+## STORAGE
 
 For keeping json values used https://github.com/tarantool/document. It allows to work with not determined json schema.
 
-##HTTP SERVER 
+## HTTP SERVER 
 For http server used https://github.com/tarantool/http. It is listen 8080 port 
 
-##REST API
+## REST API
 HTTP code 401 will be returned in cases:
 * Wrong user
 * Wrong password 
@@ -26,7 +26,7 @@ HTTP code 401 will be returned in cases:
 
 HTTP code 429 will be returned if RPS limit exceeded
 
-###GET 
+### GET 
 Returns data by key.
 Example of GET request:
 ~~~~ 
@@ -45,7 +45,7 @@ cache-control: no-cache
 where 123 is key to find.
 It will return null in case if key not found and json object otherwise f.e. **{"key":"123","value":{"c1":"cv1","c2":"cv2"}}**
 
-##PUT
+## PUT
 Inserts or updates data for given key.
 Value should be passed in json format in request body.
 Example of PUT request:
@@ -68,7 +68,7 @@ Example of PUT request:
 ~~~~
 Expected response is HTTP 200 OK code.
 
-##POST
+## POST
 Updates data for given value.
 Value should be passed in json format in request body.
 Example of PUT request:
@@ -91,7 +91,7 @@ cache-control: no-cache
 ~~~~ 
 Expected response is HTTP 200 OK code. Also it can return 404 code in case key not found.
 
-##DELETE
+## DELETE
 Deletes data for given key.
 Example of DELETE request:
 ~~~~ 
@@ -110,7 +110,7 @@ cache-control: no-cache
 ~~~~
 Expected response is HTTP 200 OK code. Also it can return 404 code in case key not found.
  
-##HOW TO RUN
+## HOW TO RUN
 To run **kvstore** need execute following from project folder:
 ~~~~
 docker-compose build
