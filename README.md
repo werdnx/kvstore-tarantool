@@ -71,7 +71,7 @@ Expected response is HTTP 200 OK code.
 ## POST
 Updates data for given value.
 Value should be passed in json format in request body.
-Example of PUT request:
+Example of POST request:
 ~~~~ 
 POST /kv/123 HTTP/1.1
 Host: 127.0.0.1:8080
