@@ -58,7 +58,7 @@ local function getHandler(req)
 end
 
 local function putHandler(req)
-    if req:stash('key') == nil or req:request_line() == '' or req:json() == nil then
+    if req:stash('key') == nil or req:json() == nil then
         return response(req, 400, 'Bad params key or value is null')
     else
         put(req:stash('key'), req:json())
