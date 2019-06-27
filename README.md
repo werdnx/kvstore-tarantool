@@ -117,5 +117,6 @@ docker-compose build
 docker-compose up
 ~~~~
 or run build_and_run.sh
+After run server should be avaliable by URL http://127.0.0.1:8080/kv/:key
 
 docker and docker-compose are required. 
