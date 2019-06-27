@@ -5,8 +5,8 @@ A key value store with REST API implemented using tarantool. It has basic auth m
 ## Basic auth
 
 It assumes user and base64 encoded password will comes in authorization header.
-There is special store for users, it keeps user id(name), sha256 hashed password and permissions for REST operations. It is possible to assign separate permissions for each REST operation.
-By default there is user admin with all permissions.
+There is special store for users, it keeps user id(name), sha256 hashed passwor and permissions for REST operations. It is possible to assign separate permissions for each REST operation.
+By default there is user admin with password adminpwd with all permissions.
 
 ##RPS limiting
 By default RPS limit value = 20. It can be changed in docker-compose.yml file. 

@@ -23,6 +23,7 @@ s_user:create_index('primary', {
 log.info('index created')
 --default user
 s_user:upsert({'admin'},{{'=',2,'7b18601f5caaa6dbbc7ad058ac54a25d30e7a508ce814c41f44ea5cabf9b3181'}, {'=',3,json.encode({ 'PUT', 'GET', 'DELETE', 'POST' })}})
+s_user:upsert({'readuser'},{{'=',2,'7b18601f5caaa6dbbc7ad058ac54a25d30e7a508ce814c41f44ea5cabf9b3181'}, {'=',3,json.encode({ 'GET' })}})
 
 local dao = {
     put = function(self, key, value)

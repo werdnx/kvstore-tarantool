@@ -9,6 +9,7 @@ local log = require('log')
 
 local SERVER_IP = os.getenv('SERVER_IP')
 local okAuth = "Basic  YWRtaW46YWRtaW5wd2Q="
+local readOnlyAuth = "Basic  cmVhZHVzZXI6YWRtaW5wd2Q="
 
 local function request(method, key, body, auth)
     return http:request(
@@ -119,6 +120,13 @@ local function checkExistingKeyPost()
     end
 end
 
+local function checkUnpermittedRequest()
+    resp = request('POST', 'test1Key', '{ "c1": "cv2" }', readOnlyAuth)
+    if resp.status ~= 401 then
+        testFailed('checkUnpermittedRequest: expected 401 but recieved ' .. resp.status)
+    end
+end
+
 local test = {
     doTests = function(self)
         checkNoUser()
@@ -133,6 +141,7 @@ local test = {
         checNotFound()
         checkNotExistingKeyDelete()
         checkExistingKeyDelete()
+        checkUnpermittedRequest()
         log.info('All test passed')
     end
 }
