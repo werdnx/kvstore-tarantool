@@ -4,7 +4,7 @@
      build: src
      environment:
      - SERVER_IP=kv_server
-     - RPS=10
+     - RPS=20
      ports:
       - "8080:8080"
 

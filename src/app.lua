@@ -1,9 +1,10 @@
 local dao = require('db')
 local check = require('check')
-local log = require('log')
 local httpd = require('http.server')
 local SERVER_IP = os.getenv('SERVER_IP')
 local json = require('json')
+local test = require('test')
+local log = require('log')
 
 
 function put(key, value)
@@ -57,7 +58,7 @@ local function getHandler(req)
 end
 
 local function putHandler(req)
-    if req:stash('key') == nil or req:json() == nil then
+    if req:stash('key') == nil or req:request_line() == '' or req:json() == nil then
         return response(req, 400, 'Bad params key or value is null')
     else
         put(req:stash('key'), req:json())
@@ -89,6 +90,7 @@ function main()
     local server = httpd.new(SERVER_IP, 8080)
     server:route({ path = '/kv/:key' }, handler)
     server:start()
+    test:doTests()
 end
 
 main()
